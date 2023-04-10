@@ -5,6 +5,16 @@ const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
   const [riskDetermination, setRiskDetermination] = useState('');
   const [riskDeterminationColor, setRiskDeterminationColor] = useState('');
 
+  function truncateString(str) {
+    if (str.length <= 8) {
+      return str;
+    }
+
+    const firstFourChars = str.slice(0, 5);
+    const lastFourChars = str.slice(-4);
+    return `${firstFourChars}...${lastFourChars}`;
+  }
+
   useEffect(() => {
     function checkWarnOrDeny(riskParams) {
       const data = riskParams;
@@ -59,7 +69,7 @@ const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
         ))}
       </div>
       <p className='text-white mb-2 border-b border-gray-600'>Device info</p>
-      <p className='text-white mb-2'>Device ID: {deviceId}</p>
+      <p className='text-white mb-2'>Device ID: {truncateString(deviceId)}</p>
       <p className='text-white mb-2'>
         Location: {geoLocation.city},{' '}
         {geoLocation.regionType == 'state'
