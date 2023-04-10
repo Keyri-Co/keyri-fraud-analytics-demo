@@ -6,7 +6,7 @@ function UpdatedAtText() {
   useEffect(() => {
     async function fetchLastUpdated() {
       try {
-        const response = await fetch('https://api.github.com/repos/Keyri-Co/session-lock-example');
+        const response = await fetch('https://api.github.com/repos/Keyri-Co/keyri-fraud-analytics-demo');
         const data = await response.json();
         setLastUpdated(data.pushed_at);
       } catch (error) {

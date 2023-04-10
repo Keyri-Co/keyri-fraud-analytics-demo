@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
           </a>
           <div className='flex items-center'>
             <a
-              href='https://github.com/Keyri-Co/session-lock-example'
+              href='https://github.com/Keyri-Co/keyri-fraud-analytics-demo'
               target='_blank'
               rel='noopener noreferrer'
               className='mr-4'
