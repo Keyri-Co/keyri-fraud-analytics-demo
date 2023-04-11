@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import Router from 'next/router';
 import { UserContext } from '@/pages/_app';
 import { Device } from 'keyri-fingerprint';
@@ -8,7 +8,7 @@ const AuthForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
+  const [authError, setAuthError] = useState('');
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext);
 
   const toggleAuthState = () => {
@@ -29,16 +29,23 @@ const AuthForm = () => {
 
     if (res.status === 200) {
       toggleAuthState();
+      setAuthError('');
       const { token } = await res.json();
       localStorage.setItem('token', token);
       const signupEvent = await device.generateEvent({ eventType: 'signup', eventResult: 'success', userId: username });
+      const riskParams = signupEvent.riskParams;
+      const geoLocation = JSON.stringify(signupEvent.location);
       const riskSignals = signupEvent.signals;
-      localStorage.setItem('eventDetails', riskSignals);
+      const deviceId = signupEvent.fingerprintId;
+      localStorage.setItem('signals', riskSignals);
+      localStorage.setItem('riskParams', riskParams);
+      localStorage.setItem('geoLocation', geoLocation);
+      localStorage.setItem('deviceId', deviceId);
       setLoading(false);
       Router.push('/dashboard');
     } else {
       setLoading(false);
-      alert('Failed to sign up');
+      setAuthError('Username already exists');
     }
   }
 
@@ -56,11 +63,10 @@ const AuthForm = () => {
 
     if (res.status === 200) {
       toggleAuthState();
-      setLoginError('');
+      setAuthError('');
       const { token } = await res.json();
       localStorage.setItem('token', token);
       const loginEvent = await device.generateEvent({ eventType: 'login', eventResult: 'success', userId: username });
-      console.log(loginEvent);
       const riskParams = loginEvent.riskParams;
       const geoLocation = JSON.stringify(loginEvent.location);
       const riskSignals = loginEvent.signals;
@@ -73,7 +79,7 @@ const AuthForm = () => {
       Router.push('/dashboard');
     } else {
       setLoading(false);
-      setLoginError('Invalid username or password');
+      setAuthError('Invalid username or password');
       await device.generateEvent({ eventType: 'login', eventResult: 'fail', userId: username });
     }
   }
@@ -125,7 +131,7 @@ const AuthForm = () => {
         </div>
       </form>
       <div className='flex flex-col mb-4'>
-        {loginError && <p className='text-red-500 w-full max-w-sm mx-auto'>{loginError}</p>}
+        {authError && <p className='text-red-500 w-full max-w-sm mx-auto'>{authError}</p>}
         <p className='w-full max-w-sm mx-auto hover:text-[#A0549D] hover:cursor-pointer' onClick={toggleAuthMode}>
           {isLogin ? "Don't have an account? Register" : 'Already have an account? Log in'}
         </p>

@@ -15,7 +15,7 @@ export default function Dashboard() {
     async function fetchData() {
       const token = localStorage.getItem('token');
       if (!token) {
-        Router.push('/auth');
+        Router.push('/');
       }
 
       try {

@@ -71,10 +71,10 @@ const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
       <p className='text-white mb-2 border-b border-gray-600'>Device info</p>
       <p className='text-white mb-2'>Device ID: {truncateString(deviceId)}</p>
       <p className='text-white mb-2'>
-        Location: {geoLocation.city},{' '}
+        Location: {geoLocation.city},
         {geoLocation.regionType == 'state'
-          ? `${geoLocation.regionCode}, ${geoLocation.country}`
-          : `${geoLocation.country}`}
+          ? ` ${geoLocation.regionCode}, ${geoLocation.country}`
+          : ` ${geoLocation.country}`}
       </p>
     </>
   );
