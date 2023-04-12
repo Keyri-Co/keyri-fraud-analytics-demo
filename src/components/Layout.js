@@ -8,7 +8,7 @@ const Layout = ({ children }) => {
       <nav className='w-full border-b-2 border-gray-600'>
         <div className='container mx-auto max-w-screen-xl flex justify-between items-center px-8 py-2'>
           <Link href='/' className='text-white text-3xl font-semibold my-2'>
-            Keyri Fraud Analytics Demo
+            Keyri Fraud Prevention Demo
           </Link>
         </div>
       </nav>
