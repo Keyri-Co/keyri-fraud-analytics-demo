@@ -1,4 +1,5 @@
 import { verify } from '@/lib/jwt';
+import { verifyLockedToken, splitLockedToken } from '@/lib/session-lock';
 
 export default async function protectedRoute(req, res) {
   if (req.method !== 'GET') {
@@ -7,7 +8,14 @@ export default async function protectedRoute(req, res) {
 
   try {
     const token = req.headers.authorization.split(' ')[1];
-    const decoded = verify(token);
+    const tokenValidation = await verifyLockedToken(token);
+
+    if (tokenValidation !== 'valid') {
+      return res.status(401).json({ error: tokenValidation });
+    }
+
+    const jwt = splitLockedToken(token).jwt;
+    const decoded = verify(jwt);
     res.status(200).json({
       message: `Hello, ${decoded.username}! You've successfully authenticated. Please inspect the risk attributes of your authentication below.`,
     });

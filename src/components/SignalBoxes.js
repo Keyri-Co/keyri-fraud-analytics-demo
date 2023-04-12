@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { checkWarnOrDeny } from '@/lib/riskAnalysis';
 
 const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
   const [riskDetermination, setRiskDetermination] = useState('');
@@ -16,40 +17,15 @@ const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
   }
 
   useEffect(() => {
-    function checkWarnOrDeny(riskParams) {
-      const data = riskParams;
-      const warnObj = data.warn;
-      const denyObj = data.deny;
-
-      let warnFlag = false;
-      let denyFlag = false;
-
-      for (const key in warnObj) {
-        if (warnObj[key]) {
-          warnFlag = true;
-          break;
-        }
-      }
-
-      for (const key in denyObj) {
-        if (denyObj[key]) {
-          denyFlag = true;
-          break;
-        }
-      }
-
-      if (denyFlag) {
-        setRiskDeterminationColor('bg-[#C42021]');
-        return 'Deny';
-      } else if (warnFlag) {
-        setRiskDeterminationColor('bg-[#F7B500]');
-        return 'Warn';
-      } else {
-        setRiskDeterminationColor('bg-[#1E9E2F]');
-        return 'Allow';
-      }
+    const riskDetermination = checkWarnOrDeny(riskParams);
+    setRiskDetermination(riskDetermination);
+    if (riskDetermination === 'Deny') {
+      setRiskDeterminationColor('bg-[#C42021]');
+    } else if (riskDetermination === 'Warn') {
+      setRiskDeterminationColor('bg-[#F7B500]');
+    } else {
+      setRiskDeterminationColor('bg-[#1E9E2F]');
     }
-    setRiskDetermination(checkWarnOrDeny(riskParams));
   }, [riskParams]);
 
   return (
