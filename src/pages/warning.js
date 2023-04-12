@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import Router from 'next/router';
+import Head from 'next/head';
 import { UserContext } from '@/pages/_app';
 import { clearIdb } from '@/lib/session-lock';
 import SignalBoxes from '@/components/SignalBoxes';
@@ -45,6 +46,11 @@ export default function Warning() {
 
   return (
     <>
+      <Head>
+        <title>Keyri Fraud Prevention - Warning</title>
+        <link rel='icon' href='/favicon.ico' />
+        <meta name='description' content='Your authentication has been flagged as suspicious' />
+      </Head>
       <div className='container'>
         <h1 className='text-2xl font-bold mb-4'>Your authentication looks risky</h1>
         <div className='container mx-auto mb-4'>

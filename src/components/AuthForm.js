@@ -25,9 +25,14 @@ const AuthForm = () => {
       localStorage.removeItem('deviceId');
       await clearIdb();
     }
-    clearEverything();
 
-    setIsLoggedIn(false);
+    const token = localStorage.getItem('token');
+    if (token) {
+      Router.push('/dashboard');
+    } else {
+      clearEverything();
+      setIsLoggedIn(false);
+    }
   }, []);
 
   const toggleAuthState = () => {

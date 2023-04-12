@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import Router from 'next/router';
+import Head from 'next/head';
 import { UserContext } from '@/pages/_app';
 import { lockToken, clearIdb } from '@/lib/session-lock';
 import SignalBoxes from '@/components/SignalBoxes';
@@ -80,6 +81,11 @@ export default function Dashboard() {
 
   return (
     <>
+      <Head>
+        <title>Keyri Fraud Prevention - Allowed</title>
+        <link rel='icon' href='/favicon.ico' />
+        <meta name='description' content='The post-authentication page for Keyri Fraud Prevention.' />
+      </Head>
       <div className='container'>
         <h1 className='text-2xl font-bold mb-4'>{isLoggedIn ? `You're logged in!` : `Try again!`}</h1>
         <div className='container mx-auto mb-4'>

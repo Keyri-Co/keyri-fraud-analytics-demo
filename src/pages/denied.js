@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import Router from 'next/router';
+import Head from 'next/head';
 import { UserContext } from '@/pages/_app';
 import { clearIdb } from '@/lib/session-lock';
 import SignalBoxes from '@/components/SignalBoxes';
@@ -45,6 +46,14 @@ export default function Warning() {
 
   return (
     <>
+      <Head>
+        <title>Keyri Fraud Prevention - Denied</title>
+        <link rel='icon' href='/favicon.ico' />
+        <meta
+          name='description'
+          content='Your authentication event has been flagged as suspicious and subsequently denied due to the fraud risk handling rules set in the Keyri Dashboard.'
+        />
+      </Head>
       <div className='container'>
         <h1 className='text-2xl font-bold mb-4'>Your authentication was denied</h1>
         <div className='container mx-auto mb-4'>
