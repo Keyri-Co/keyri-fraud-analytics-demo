@@ -63,7 +63,6 @@ const AuthForm = () => {
 
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
-    console.log('response', riskResponse);
     saveRisk(riskResponse);
 
     setLoading(false);
@@ -116,7 +115,6 @@ const AuthForm = () => {
     });
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
-    console.log('response', riskResponse);
     saveRisk(riskResponse);
 
     setLoading(false);
@@ -172,7 +170,6 @@ const AuthForm = () => {
     });
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
-    console.log('response', riskResponse);
     saveRisk(riskResponse);
 
     localStorage.setItem('token', jwtInput);

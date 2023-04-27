@@ -24,7 +24,6 @@ export default async function jwtLogin(req, res) {
 
     decryptedRiskEvent = new TextDecoder().decode(decryptedRiskEvent);
     decryptedRiskEvent = JSON.parse(decryptedRiskEvent).fingerprintEvent;
-    console.log('decryptedRiskEvent', decryptedRiskEvent);
     const riskDetermination = checkWarnOrDeny(JSON.parse(decryptedRiskEvent.riskParams));
     const signals = decryptedRiskEvent.signals;
     const riskParams = decryptedRiskEvent.riskParams;
