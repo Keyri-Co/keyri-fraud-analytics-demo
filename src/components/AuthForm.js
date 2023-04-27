@@ -87,6 +87,7 @@ const AuthForm = () => {
     } else {
       //Error case
       setAuthError('Username already exists');
+      setLoading(false);
     }
 
     if (destination) {
@@ -138,7 +139,7 @@ const AuthForm = () => {
       destination = '/warning';
     } else {
       //Error case
-      setAuthError('Invalid username or password');
+      setAuthError(response.error);
     }
 
     if (destination) {

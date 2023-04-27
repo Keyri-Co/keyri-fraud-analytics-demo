@@ -47,7 +47,7 @@ export default async function login(req, res) {
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
         statusCode = 401;
-        response = {};
+        response = { riskResponse, error: 'Invalid username or password' };
       } else {
         const token = sign({ id: user.id, username: user.username, publicKey: publicKey });
         statusCode = 200;
