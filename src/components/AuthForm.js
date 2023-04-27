@@ -86,7 +86,7 @@ const AuthForm = () => {
       destination = '/warning';
     } else {
       //Error case
-      setAuthError('Username already exists');
+      setAuthError(response.error);
       setLoading(false);
     }
 
