@@ -17,7 +17,7 @@ const SignalBoxes = ({ riskParams, geoLocation, signals, deviceId }) => {
   }
 
   useEffect(() => {
-    const riskDetermination = checkWarnOrDeny(riskParams);
+    const riskDetermination = riskParams ? checkWarnOrDeny(riskParams) : '';
     setRiskDetermination(riskDetermination);
     if (riskDetermination === 'Deny') {
       setRiskDeterminationColor('bg-[#C42021]');

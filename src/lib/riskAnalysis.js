@@ -1,32 +1,17 @@
-function checkWarnOrDeny(riskParams) {
-  const data = riskParams;
-  const warnObj = data.warn;
-  const denyObj = data.deny;
-
-  let warnFlag = false;
-  let denyFlag = false;
-
-  for (const key in warnObj) {
-    if (warnObj[key]) {
-      warnFlag = true;
-      break;
+function checkWarnOrDeny(data) {
+  for (let key in data.deny) {
+    if (data.deny[key] === true) {
+      return 'Deny';
     }
   }
 
-  for (const key in denyObj) {
-    if (denyObj[key]) {
-      denyFlag = true;
-      break;
+  for (let key in data.warn) {
+    if (data.warn[key] === true) {
+      return 'Warn';
     }
   }
 
-  if (denyFlag) {
-    return 'Deny';
-  } else if (warnFlag) {
-    return 'Warn';
-  } else {
-    return 'Allow';
-  }
+  return 'Allow';
 }
 
 module.exports = { checkWarnOrDeny };

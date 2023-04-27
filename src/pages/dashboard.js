@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import Router from 'next/router';
 import Head from 'next/head';
+import { Device } from 'keyri-fingerprint';
 import { UserContext } from '@/pages/_app';
 import { lockToken, clearIdb } from '@/lib/session-lock';
 import SignalBoxes from '@/components/SignalBoxes';
@@ -15,64 +16,66 @@ export default function Dashboard() {
   const [deviceId, setDeviceId] = useState('');
 
   useEffect(() => {
+    function setRiskStates() {
+      const storedRiskParams = localStorage.getItem('riskParams');
+      if (storedRiskParams) {
+        setRiskParams(JSON.parse(storedRiskParams));
+      }
+      const storedGeoLocation = localStorage.getItem('geoLocation');
+      if (storedGeoLocation) {
+        setGeoLocation(JSON.parse(storedGeoLocation));
+      }
+      const storedSignals = localStorage.getItem('signals');
+      if (storedSignals) {
+        setSignals(storedSignals.split(','));
+      }
+      const deviceId = localStorage.getItem('deviceId');
+      if (deviceId) {
+        setDeviceId(deviceId);
+      }
+    }
+
     async function fetchData() {
       const token = localStorage.getItem('token');
       if (!token) {
         Router.push('/');
-      }
+      } else {
+        try {
+          const lockedToken = await lockToken(token);
 
-      try {
-        const lockedToken = await lockToken(token);
+          const res = await fetch('/api/protected', {
+            headers: { Authorization: `Bearer ${lockedToken}` },
+          });
 
-        const res = await fetch('/api/protected', {
-          headers: { Authorization: `Bearer ${lockedToken}` },
-        });
+          if (res.status === 200) {
+            const data = await res.json();
 
-        if (res.status === 200) {
-          const data = await res.json();
+            setIsLoggedIn(true);
+            setMessage(data.message);
 
-          setIsLoggedIn(true);
-          setMessage(data.message);
-        } else {
+            setRiskStates();
+          } else {
+            setIsLoggedIn(false);
+            setMessage(
+              `Something went wrong with your authentication. You might be improperly re-using a session token. Please try again.`
+            );
+            setRiskStates();
+          }
+        } catch (error) {
           setIsLoggedIn(false);
-          setMessage(data.message);
+          setMessage(
+            `Something went wrong with your authentication. You might be improperly re-using a session token. Please try again.`
+          );
+          setRiskStates();
         }
-      } catch (error) {
-        console.error(error);
-        setIsLoggedIn(false);
-        setMessage(
-          `Something went wrong with your authentication. You might be improperly re-using a session token. Please try again.`
-        );
       }
     }
 
     fetchData();
-
-    const storedRiskParams = localStorage.getItem('riskParams');
-    if (storedRiskParams) {
-      setRiskParams(JSON.parse(storedRiskParams));
-    }
-    const storedGeoLocation = localStorage.getItem('geoLocation');
-    if (storedGeoLocation) {
-      setGeoLocation(JSON.parse(storedGeoLocation));
-    }
-    const storedSignals = localStorage.getItem('signals');
-    if (storedSignals) {
-      setSignals(storedSignals.split(','));
-    }
-    const deviceId = localStorage.getItem('deviceId');
-    if (deviceId) {
-      setDeviceId(deviceId);
-    }
   }, [setIsLoggedIn]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('eventDetails');
-    localStorage.removeItem('riskParams');
-    localStorage.removeItem('geoLocation');
-    localStorage.removeItem('signals');
-    localStorage.removeItem('deviceId');
+    localStorage.clear();
     await clearIdb();
 
     setIsLoggedIn(false);

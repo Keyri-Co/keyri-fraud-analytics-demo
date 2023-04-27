@@ -32,12 +32,7 @@ export default function Warning() {
   }, [setIsLoggedIn]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('eventDetails');
-    localStorage.removeItem('riskParams');
-    localStorage.removeItem('geoLocation');
-    localStorage.removeItem('signals');
-    localStorage.removeItem('deviceId');
+    localStorage.clear();
     await clearIdb();
 
     setIsLoggedIn(false);

@@ -13,6 +13,9 @@ export default function Warning() {
   const [deviceId, setDeviceId] = useState('');
 
   useEffect(() => {
+    if (!localStorage.getItem('riskParams')) {
+      Router.push('/');
+    }
     const storedRiskParams = localStorage.getItem('riskParams');
     if (storedRiskParams) {
       setRiskParams(JSON.parse(storedRiskParams));
@@ -32,12 +35,7 @@ export default function Warning() {
   }, [setIsLoggedIn]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('eventDetails');
-    localStorage.removeItem('riskParams');
-    localStorage.removeItem('geoLocation');
-    localStorage.removeItem('signals');
-    localStorage.removeItem('deviceId');
+    localStorage.clear();
     await clearIdb();
 
     setIsLoggedIn(false);

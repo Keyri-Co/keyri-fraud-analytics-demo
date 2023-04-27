@@ -17,12 +17,7 @@ const AuthForm = () => {
   useEffect(() => {
     async function clearEverything() {
       setLoading(false);
-      localStorage.removeItem('token');
-      localStorage.removeItem('eventDetails');
-      localStorage.removeItem('riskParams');
-      localStorage.removeItem('geoLocation');
-      localStorage.removeItem('signals');
-      localStorage.removeItem('deviceId');
+      localStorage.clear();
       await clearIdb();
     }
 
@@ -40,99 +35,116 @@ const AuthForm = () => {
   };
 
   function saveRisk(event) {
-    const riskParams = event.riskParams;
-    const geoLocation = JSON.stringify(event.location);
-    const riskSignals = event.signals;
-    const deviceId = event.fingerprintId;
-    localStorage.setItem('signals', riskSignals);
-    localStorage.setItem('riskParams', riskParams);
-    localStorage.setItem('geoLocation', geoLocation);
-    localStorage.setItem('deviceId', deviceId);
+    localStorage.setItem('signals', event.signals);
+    localStorage.setItem('riskParams', event.riskParams);
+    localStorage.setItem('geoLocation', event.location);
+    localStorage.setItem('deviceId', event.fingerprintId);
   }
 
   async function handleSignup(e) {
     e.preventDefault();
     setLoading(true);
-    let device = new Device({ apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY, environment: 'development' });
+
+    let device = new Device({
+      apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
+      serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
+      environment: 'development',
+    });
     await device.load();
+    const encryptedSignupEvent = await device.generateEvent({ eventType: 'signup', userId: username });
+    const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
     const res = await fetch('/api/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, publicKey }),
+      body: JSON.stringify({ username, password, publicKey, encryptedSignupEventString }),
     });
 
+    const response = await res.json();
+    const riskResponse = JSON.parse(response.riskResponse);
+    console.log('response', riskResponse);
+    saveRisk(riskResponse);
+
+    setLoading(false);
+
+    let destination;
+
     if (res.status === 200) {
+      //Allow case
       toggleAuthState();
       setAuthError('');
-
-      const signupEvent = await device.generateEvent({ eventType: 'signup', eventResult: 'success', userId: username });
-      saveRisk(signupEvent);
-      const riskDetermination = checkWarnOrDeny(JSON.parse(signupEvent.riskParams));
-      console.log('riskDetermination', riskDetermination);
-      if (riskDetermination === 'Deny') {
-        setLoading(false);
-        Router.push('/denied');
-      } else if (riskDetermination === 'Warn') {
-        setLoading(false);
-        Router.push('/warning');
-      } else {
-        const { token } = await res.json();
-        localStorage.setItem('token', token);
-
-        setLoading(false);
-        Router.push('/dashboard');
-      }
+      const token = response.token;
+      localStorage.setItem('token', token);
+      destination = '/dashboard';
+    } else if (res.status === 403) {
+      //Deny case
+      setAuthError('');
+      destination = '/denied';
+    } else if (res.status === 300) {
+      //Warn case
+      setAuthError('');
+      destination = '/warning';
     } else {
-      setLoading(false);
+      //Error case
       setAuthError('Username already exists');
+    }
+
+    if (destination) {
+      Router.push(destination);
     }
   }
 
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
-    let device = new Device({ apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY, environment: 'development' });
+
+    let device = new Device({
+      apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
+      serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
+      environment: 'development',
+    });
     await device.load();
+    const encryptedLoginEvent = await device.generateEvent({ eventType: 'login', userId: username });
+    const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, publicKey }),
+      body: JSON.stringify({ username, password, publicKey, encryptedLoginEventString }),
     });
+    const response = await res.json();
+    const riskResponse = JSON.parse(response.riskResponse);
+    console.log('response', riskResponse);
+    saveRisk(riskResponse);
+
+    setLoading(false);
+
+    let destination;
 
     if (res.status === 200) {
+      //Allow case
       toggleAuthState();
       setAuthError('');
-
-      const loginEvent = await device.generateEvent({ eventType: 'login', eventResult: 'success', userId: username });
-      saveRisk(loginEvent);
-      const riskDetermination = checkWarnOrDeny(JSON.parse(loginEvent.riskParams));
-      if (riskDetermination === 'Deny') {
-        console.log('DENY CASE', riskDetermination);
-        setLoading(false);
-        Router.push('/denied');
-        console.log('DENY CASE 2', riskDetermination);
-      } else if (riskDetermination === 'Warn') {
-        console.log('WARN CASE', riskDetermination);
-        console.log('riskDetermination', riskDetermination);
-        setLoading(false);
-        Router.push('/warning');
-        console.log('WARN CASE 2', riskDetermination);
-      } else {
-        const { token } = await res.json();
-        localStorage.setItem('token', token);
-
-        setLoading(false);
-        console.log('ALLOW CASE', riskDetermination);
-        Router.push('/dashboard');
-      }
+      const token = response.token;
+      localStorage.setItem('token', token);
+      destination = '/dashboard';
+    } else if (res.status === 403) {
+      //Deny case
+      setAuthError('');
+      destination = '/denied';
+    } else if (res.status === 300) {
+      //Warn case
+      setAuthError('');
+      destination = '/warning';
     } else {
-      setLoading(false);
+      //Error case
       setAuthError('Invalid username or password');
-      await device.generateEvent({ eventType: 'login', eventResult: 'fail', userId: username });
+    }
+
+    if (destination) {
+      Router.push(destination);
     }
   }
 
@@ -144,10 +156,24 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    let device = new Device({ apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY, environment: 'development' });
+    const device = new Device({
+      apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
+      serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
+      environment: 'development',
+    });
     await device.load();
-    const loginEvent = await device.generateEvent({ eventType: 'login', eventResult: 'success', userId: username });
-    saveRisk(loginEvent);
+    const encryptedRiskEvent = await device.generateEvent({ eventType: 'login', userId: 'jwt' });
+    const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
+
+    const res = await fetch('/api/decrypt-risk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ encryptedRiskEventString }),
+    });
+    const response = await res.json();
+    const riskResponse = JSON.parse(response.riskResponse);
+    console.log('response', riskResponse);
+    saveRisk(riskResponse);
 
     localStorage.setItem('token', jwtInput);
     setLoading(false);
