@@ -3,7 +3,6 @@ import Router from 'next/router';
 import { UserContext } from '@/pages/_app';
 import { Device } from 'keyri-fingerprint';
 import { generateKeyPair, clearIdb } from '@/lib/session-lock';
-import { checkWarnOrDeny } from '@/lib/riskAnalysis';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -51,7 +50,11 @@ const AuthForm = () => {
       environment: 'development',
     });
     await device.load();
-    const encryptedSignupEvent = await device.generateEvent({ eventType: 'signup', userId: username });
+    const encryptedSignupEvent = await device.generateEvent({
+      eventType: 'signup',
+      eventResult: 'incomplete',
+      userId: username,
+    });
     const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
@@ -105,7 +108,11 @@ const AuthForm = () => {
       environment: 'development',
     });
     await device.load();
-    const encryptedLoginEvent = await device.generateEvent({ eventType: 'login', userId: username });
+    const encryptedLoginEvent = await device.generateEvent({
+      eventType: 'login',
+      eventResult: 'incomplete',
+      userId: username,
+    });
     const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
@@ -161,7 +168,11 @@ const AuthForm = () => {
       environment: 'development',
     });
     await device.load();
-    const encryptedRiskEvent = await device.generateEvent({ eventType: 'login', userId: 'jwt' });
+    const encryptedRiskEvent = await device.generateEvent({
+      eventType: 'login',
+      eventResult: 'incomplete',
+      userId: 'jwt',
+    });
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
     const res = await fetch('/api/decrypt-risk', {
