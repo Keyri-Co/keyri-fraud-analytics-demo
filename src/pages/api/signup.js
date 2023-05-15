@@ -10,6 +10,10 @@ export default async function signup(req, res) {
   }
 
   const { username, password, publicKey, encryptedSignupEventString } = req.body;
+  console.log('username', username);
+  console.log('password', password);
+  console.log('publicKey', publicKey);
+  console.log('encryptedSignupEventString', encryptedSignupEventString);
   let statusCode, response;
 
   try {
@@ -17,6 +21,7 @@ export default async function signup(req, res) {
 
     const rpPrivateKey = process.env.RP_ENCRYPTION_PRIVATE_KEY;
     const encryptedSignupEvent = JSON.parse(encryptedSignupEventString);
+    console.log('encryptedSignupEvent', encryptedSignupEvent);
 
     let decryptedSignupEvent = await ezcrypto.HKDFDecrypt(
       rpPrivateKey,
@@ -27,8 +32,11 @@ export default async function signup(req, res) {
     );
 
     decryptedSignupEvent = new TextDecoder().decode(decryptedSignupEvent);
+    console.log('decryptedSignupEvent', decryptedSignupEvent);
     decryptedSignupEvent = JSON.parse(decryptedSignupEvent).fingerprintEvent;
+    console.log('decryptedSignupEvent', decryptedSignupEvent);
     const riskDetermination = checkWarnOrDeny(JSON.parse(decryptedSignupEvent.riskParams));
+    console.log('riskDetermination', riskDetermination);
     const signals = decryptedSignupEvent.signals;
     const riskParams = decryptedSignupEvent.riskParams;
     const location = JSON.stringify(decryptedSignupEvent.location);
