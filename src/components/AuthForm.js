@@ -1,16 +1,17 @@
-import { useState, useContext, useEffect } from 'react';
-import Router from 'next/router';
-import { UserContext } from '@/pages/_app';
-import { Device } from 'keyri-fingerprint';
-import { generateKeyPair, clearIdb } from '@/lib/session-lock';
+import { useState, useContext, useEffect } from "react";
+import Router from "next/router";
+import { UserContext } from "@/pages/_app";
+import { Device } from "keyri-fingerprint";
+import { keyriEvent } from "@/lib/browserFingerprint";
+import { generateKeyPair, clearIdb } from "@/lib/session-lock";
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const [jwtInput, setJwtInput] = useState('');
+  const [authError, setAuthError] = useState("");
+  const [jwtInput, setJwtInput] = useState("");
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext);
 
   useEffect(() => {
@@ -20,9 +21,9 @@ const AuthForm = () => {
       await clearIdb();
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      Router.push('/dashboard');
+      Router.push("/dashboard");
     } else {
       clearEverything();
       setIsLoggedIn(false);
@@ -34,17 +35,28 @@ const AuthForm = () => {
   };
 
   function saveRisk(event) {
-    localStorage.setItem('signals', event.signals);
-    localStorage.setItem('riskParams', event.riskParams);
-    localStorage.setItem('geoLocation', event.location);
-    localStorage.setItem('deviceId', event.fingerprintId);
+    localStorage.setItem("signals", event.signals);
+    localStorage.setItem("riskParams", event.riskParams);
+    localStorage.setItem("geoLocation", event.location);
+    localStorage.setItem("deviceId", event.fingerprintId);
   }
 
   async function handleSignup(e) {
     e.preventDefault();
     setLoading(true);
 
-    let device = new Device({
+    const serviceEncryptionKey =
+      process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY;
+    const encryptedSignupEvent = await keyriEvent(
+      username,
+      "signup",
+      serviceEncryptionKey,
+      apiKey,
+      "development"
+    );
+
+    /*let device = new Device({
       apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
       serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
       environment: 'development',
@@ -54,14 +66,19 @@ const AuthForm = () => {
       eventType: 'signup',
       eventResult: 'incomplete',
       userId: username,
-    });
+    });*/
     const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
-    const res = await fetch('/api/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, publicKey, encryptedSignupEventString }),
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        publicKey,
+        encryptedSignupEventString,
+      }),
     });
 
     const response = await res.json();
@@ -75,18 +92,18 @@ const AuthForm = () => {
     if (res.status === 200) {
       //Allow case
       toggleAuthState();
-      setAuthError('');
+      setAuthError("");
       const token = response.token;
-      localStorage.setItem('token', token);
-      destination = '/dashboard';
+      localStorage.setItem("token", token);
+      destination = "/dashboard";
     } else if (res.status === 403) {
       //Deny case
-      setAuthError('');
-      destination = '/denied';
+      setAuthError("");
+      destination = "/denied";
     } else if (res.status === 300) {
       //Warn case
-      setAuthError('');
-      destination = '/warning';
+      setAuthError("");
+      destination = "/warning";
     } else {
       //Error case
       setAuthError(response.error);
@@ -105,21 +122,26 @@ const AuthForm = () => {
     let device = new Device({
       apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
       serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
-      environment: 'development',
+      environment: "development",
     });
     await device.load();
     const encryptedLoginEvent = await device.generateEvent({
-      eventType: 'login',
-      eventResult: 'incomplete',
+      eventType: "login",
+      eventResult: "incomplete",
       userId: username,
     });
     const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, publicKey, encryptedLoginEventString }),
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        publicKey,
+        encryptedLoginEventString,
+      }),
     });
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
@@ -132,18 +154,18 @@ const AuthForm = () => {
     if (res.status === 200) {
       //Allow case
       toggleAuthState();
-      setAuthError('');
+      setAuthError("");
       const token = response.token;
-      localStorage.setItem('token', token);
-      destination = '/dashboard';
+      localStorage.setItem("token", token);
+      destination = "/dashboard";
     } else if (res.status === 403) {
       //Deny case
-      setAuthError('');
-      destination = '/denied';
+      setAuthError("");
+      destination = "/denied";
     } else if (res.status === 300) {
       //Warn case
-      setAuthError('');
-      destination = '/warning';
+      setAuthError("");
+      destination = "/warning";
     } else {
       //Error case
       setAuthError(response.error);
@@ -165,99 +187,111 @@ const AuthForm = () => {
     const device = new Device({
       apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
       serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
-      environment: 'development',
+      environment: "development",
     });
     await device.load();
     const encryptedRiskEvent = await device.generateEvent({
-      eventType: 'login',
-      eventResult: 'incomplete',
-      userId: 'jwt',
+      eventType: "login",
+      eventResult: "incomplete",
+      userId: "jwt",
     });
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
-    const res = await fetch('/api/decrypt-risk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/decrypt-risk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ encryptedRiskEventString }),
     });
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
     saveRisk(riskResponse);
 
-    localStorage.setItem('token', jwtInput);
+    localStorage.setItem("token", jwtInput);
     setLoading(false);
-    Router.push('/dashboard');
+    Router.push("/dashboard");
   };
 
   return (
-    <div className='w-full'>
-      <div className='flex flex-col mb-4'>
-        <h1 className='w-full max-w-sm mx-auto text-2xl font-bold'>{isLogin ? 'Log in' : 'Register'}</h1>
+    <div className="w-full">
+      <div className="flex flex-col mb-4">
+        <h1 className="w-full max-w-sm mx-auto text-2xl font-bold">
+          {isLogin ? "Log in" : "Register"}
+        </h1>
       </div>
-      <form className='w-full max-w-sm mx-auto' onSubmit={isLogin ? handleLogin : handleSignup}>
-        <div className='flex flex-col mb-4'>
+      <form
+        className="w-full max-w-sm mx-auto"
+        onSubmit={isLogin ? handleLogin : handleSignup}
+      >
+        <div className="flex flex-col mb-4">
           <input
-            className='py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800'
-            type='text'
-            placeholder='Username'
+            className="py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800"
+            type="text"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
-        <div className='flex flex-col mb-4'>
+        <div className="flex flex-col mb-4">
           <input
-            className='py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800'
-            type='password'
-            placeholder='Password'
+            className="py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800"
+            type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <div className='flex flex-col mb-4'>
+        <div className="flex flex-col mb-4">
           <button
-            className='bg-[#934D91] hover:bg-[#A0549D] text-white font-bold py-2 px-4 rounded focus:outline-none flex items-center justify-center'
-            type='submit'
+            className="bg-[#934D91] hover:bg-[#A0549D] text-white font-bold py-2 px-4 rounded focus:outline-none flex items-center justify-center"
+            type="submit"
             disabled={loading}
           >
             {loading ? (
-              <div className='animate-spin w-4 h-4 border-t-2 border-white rounded-full' />
+              <div className="animate-spin w-4 h-4 border-t-2 border-white rounded-full" />
             ) : isLogin ? (
-              'Log in'
+              "Log in"
             ) : (
-              'Register'
+              "Register"
             )}
           </button>
         </div>
       </form>
-      <div className='flex flex-col mb-4'>
-        {authError && <p className='text-red-500 w-full max-w-sm mx-auto'>{authError}</p>}
-        <p className='w-full max-w-sm mx-auto hover:text-[#A0549D] hover:cursor-pointer' onClick={toggleAuthMode}>
-          {isLogin ? "Don't have an account? Register" : 'Already have an account? Log in'}
+      <div className="flex flex-col mb-4">
+        {authError && (
+          <p className="text-red-500 w-full max-w-sm mx-auto">{authError}</p>
+        )}
+        <p
+          className="w-full max-w-sm mx-auto hover:text-[#A0549D] hover:cursor-pointer"
+          onClick={toggleAuthMode}
+        >
+          {isLogin
+            ? "Don't have an account? Register"
+            : "Already have an account? Log in"}
         </p>
       </div>
 
-      <div className='flex flex-col mb-4 w-full max-w-sm mx-auto'>
-        <h3 className='text-lg font-semibold mb-4 border-t border-gray-600 py-4'>
+      <div className="flex flex-col mb-4 w-full max-w-sm mx-auto">
+        <h3 className="text-lg font-semibold mb-4 border-t border-gray-600 py-4">
           Or authenticate with JWT from other session
         </h3>
         <input
-          className='py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800 mb-4'
-          type='text'
-          placeholder='Paste your JWT here'
+          className="py-2 px-3 border rounded placeholder-gray-500 focus:outline-none text-gray-800 mb-4"
+          type="text"
+          placeholder="Paste your JWT here"
           value={jwtInput}
           onChange={(e) => setJwtInput(e.target.value)}
         />
         <button
-          className='bg-indigo-800 border border-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none flex items-center justify-center'
+          className="bg-indigo-800 border border-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none flex items-center justify-center"
           onClick={handleJwtAuth}
           disabled={loading || !jwtInput}
         >
           {loading ? (
-            <div className='animate-spin w-4 h-4 border-t-2 border-white rounded-full' />
+            <div className="animate-spin w-4 h-4 border-t-2 border-white rounded-full" />
           ) : (
-            'Authenticate with JWT'
+            "Authenticate with JWT"
           )}
         </button>
       </div>

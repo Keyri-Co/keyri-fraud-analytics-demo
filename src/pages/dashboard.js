@@ -1,49 +1,48 @@
-import { useState, useEffect, useContext } from 'react';
-import Router from 'next/router';
-import Head from 'next/head';
-import { Device } from 'keyri-fingerprint';
-import { UserContext } from '@/pages/_app';
-import { lockToken, clearIdb } from '@/lib/session-lock';
-import SignalBoxes from '@/components/SignalBoxes';
-import CopyTokenButton from '@/components/CopyTokenButton';
+import { useState, useEffect, useContext } from "react";
+import Router from "next/router";
+import Head from "next/head";
+import { UserContext } from "@/pages/_app";
+import { lockToken, clearIdb } from "@/lib/session-lock";
+import SignalBoxes from "@/components/SignalBoxes";
+import CopyTokenButton from "@/components/CopyTokenButton";
 
 export default function Dashboard() {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext);
   const [signals, setSignals] = useState([]);
-  const [riskParams, setRiskParams] = useState('');
+  const [riskParams, setRiskParams] = useState("");
   const [geoLocation, setGeoLocation] = useState({});
-  const [deviceId, setDeviceId] = useState('');
+  const [deviceId, setDeviceId] = useState("");
 
   useEffect(() => {
     function setRiskStates() {
-      const storedRiskParams = localStorage.getItem('riskParams');
+      const storedRiskParams = localStorage.getItem("riskParams");
       if (storedRiskParams) {
         setRiskParams(JSON.parse(storedRiskParams));
       }
-      const storedGeoLocation = localStorage.getItem('geoLocation');
+      const storedGeoLocation = localStorage.getItem("geoLocation");
       if (storedGeoLocation) {
         setGeoLocation(JSON.parse(storedGeoLocation));
       }
-      const storedSignals = localStorage.getItem('signals');
+      const storedSignals = localStorage.getItem("signals");
       if (storedSignals) {
-        setSignals(storedSignals.split(','));
+        setSignals(storedSignals.split(","));
       }
-      const deviceId = localStorage.getItem('deviceId');
+      const deviceId = localStorage.getItem("deviceId");
       if (deviceId) {
         setDeviceId(deviceId);
       }
     }
 
     async function fetchData() {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        Router.push('/');
+        Router.push("/");
       } else {
         try {
           const lockedToken = await lockToken(token);
 
-          const res = await fetch('/api/protected', {
+          const res = await fetch("/api/protected", {
             headers: { Authorization: `Bearer ${lockedToken}` },
           });
 
@@ -79,26 +78,31 @@ export default function Dashboard() {
     await clearIdb();
 
     setIsLoggedIn(false);
-    Router.push('/');
+    Router.push("/");
   };
 
   return (
     <>
       <Head>
         <title>Keyri Fraud Prevention - Allowed</title>
-        <link rel='icon' href='/favicon.ico' />
-        <meta name='description' content='The post-authentication page for Keyri Fraud Prevention.' />
+        <link rel="icon" href="/favicon.ico" />
+        <meta
+          name="description"
+          content="The post-authentication page for Keyri Fraud Prevention."
+        />
       </Head>
-      <div className='container'>
-        <h1 className='text-2xl font-bold mb-4'>{isLoggedIn ? `You're logged in!` : `Try again!`}</h1>
-        <div className='container mx-auto mb-4'>
+      <div className="container">
+        <h1 className="text-2xl font-bold mb-4">
+          {isLoggedIn ? `You're logged in!` : `Try again!`}
+        </h1>
+        <div className="container mx-auto mb-4">
           <p>{message}</p>
         </div>
         {isLoggedIn ? (
           <>
             <CopyTokenButton />
             <button
-              className='bg-[#934D91] hover:bg-[#A0549D]  text-white font-medium rounded-lg text-m px-4 py-2 text-center'
+              className="bg-[#934D91] hover:bg-[#A0549D]  text-white font-medium rounded-lg text-m px-4 py-2 text-center"
               onClick={handleLogout}
             >
               Log out
@@ -107,7 +111,7 @@ export default function Dashboard() {
         ) : (
           <>
             <button
-              className='bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg text-m px-4 py-2 text-center'
+              className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg text-m px-4 py-2 text-center"
               onClick={handleLogout}
             >
               Go back
@@ -115,10 +119,17 @@ export default function Dashboard() {
           </>
         )}
 
-        <div className='container mx-auto max-w-screen-xl mt-10'>
-          <p className='text-m font-semibold mb-2 border-b-2 border-gray-600'>Fraud Risk Details</p>
+        <div className="container mx-auto max-w-screen-xl mt-10">
+          <p className="text-m font-semibold mb-2 border-b-2 border-gray-600">
+            Fraud Risk Details
+          </p>
 
-          <SignalBoxes riskParams={riskParams} geoLocation={geoLocation} signals={signals} deviceId={deviceId} />
+          <SignalBoxes
+            riskParams={riskParams}
+            geoLocation={geoLocation}
+            signals={signals}
+            deviceId={deviceId}
+          />
         </div>
       </div>
     </>
