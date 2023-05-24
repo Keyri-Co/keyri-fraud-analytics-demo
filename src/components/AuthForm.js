@@ -1,17 +1,21 @@
-import { useState, useContext, useEffect } from "react";
-import Router from "next/router";
-import { UserContext } from "@/pages/_app";
-import { Device } from "keyri-fingerprint";
-import { keyriEvent } from "@/lib/browserFingerprint";
-import { generateKeyPair, clearIdb } from "@/lib/session-lock";
+import { useState, useContext, useEffect } from 'react';
+import Router from 'next/router';
+import dynamic from 'next/dynamic';
+import { UserContext } from '@/pages/_app';
+import { Device } from 'keyri-fingerprint';
+import { generateKeyPair, clearIdb } from '@/lib/session-lock';
+
+const keyriEvent = dynamic(() => import('browser-fraud-analytics'), {
+  ssr: false,
+});
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const [jwtInput, setJwtInput] = useState("");
+  const [authError, setAuthError] = useState('');
+  const [jwtInput, setJwtInput] = useState('');
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext);
 
   useEffect(() => {
@@ -21,9 +25,9 @@ const AuthForm = () => {
       await clearIdb();
     }
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
-      Router.push("/dashboard");
+      Router.push('/dashboard');
     } else {
       clearEverything();
       setIsLoggedIn(false);
@@ -35,10 +39,10 @@ const AuthForm = () => {
   };
 
   function saveRisk(event) {
-    localStorage.setItem("signals", event.signals);
-    localStorage.setItem("riskParams", event.riskParams);
-    localStorage.setItem("geoLocation", event.location);
-    localStorage.setItem("deviceId", event.fingerprintId);
+    localStorage.setItem('signals', event.signals);
+    localStorage.setItem('riskParams', event.riskParams);
+    localStorage.setItem('geoLocation', event.location);
+    localStorage.setItem('deviceId', event.fingerprintId);
   }
 
   async function handleSignup(e) {
@@ -50,10 +54,10 @@ const AuthForm = () => {
     const apiKey = process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY;
     const encryptedSignupEvent = await keyriEvent(
       username,
-      "signup",
+      'signup',
       serviceEncryptionKey,
       apiKey,
-      "development"
+      'development'
     );
 
     /*let device = new Device({
@@ -70,9 +74,9 @@ const AuthForm = () => {
     const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username,
         password,
@@ -92,18 +96,18 @@ const AuthForm = () => {
     if (res.status === 200) {
       //Allow case
       toggleAuthState();
-      setAuthError("");
+      setAuthError('');
       const token = response.token;
-      localStorage.setItem("token", token);
-      destination = "/dashboard";
+      localStorage.setItem('token', token);
+      destination = '/dashboard';
     } else if (res.status === 403) {
       //Deny case
-      setAuthError("");
-      destination = "/denied";
+      setAuthError('');
+      destination = '/denied';
     } else if (res.status === 300) {
       //Warn case
-      setAuthError("");
-      destination = "/warning";
+      setAuthError('');
+      destination = '/warning';
     } else {
       //Error case
       setAuthError(response.error);
@@ -122,20 +126,20 @@ const AuthForm = () => {
     let device = new Device({
       apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
       serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
-      environment: "development",
+      environment: 'development',
     });
     await device.load();
     const encryptedLoginEvent = await device.generateEvent({
-      eventType: "login",
-      eventResult: "incomplete",
+      eventType: 'login',
+      eventResult: 'incomplete',
       userId: username,
     });
     const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username,
         password,
@@ -154,18 +158,18 @@ const AuthForm = () => {
     if (res.status === 200) {
       //Allow case
       toggleAuthState();
-      setAuthError("");
+      setAuthError('');
       const token = response.token;
-      localStorage.setItem("token", token);
-      destination = "/dashboard";
+      localStorage.setItem('token', token);
+      destination = '/dashboard';
     } else if (res.status === 403) {
       //Deny case
-      setAuthError("");
-      destination = "/denied";
+      setAuthError('');
+      destination = '/denied';
     } else if (res.status === 300) {
       //Warn case
-      setAuthError("");
-      destination = "/warning";
+      setAuthError('');
+      destination = '/warning';
     } else {
       //Error case
       setAuthError(response.error);
@@ -187,35 +191,35 @@ const AuthForm = () => {
     const device = new Device({
       apiKey: process.env.NEXT_PUBLIC_FINGERPRINT_API_KEY,
       serviceEncryptionKey: process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY,
-      environment: "development",
+      environment: 'development',
     });
     await device.load();
     const encryptedRiskEvent = await device.generateEvent({
-      eventType: "login",
-      eventResult: "incomplete",
-      userId: "jwt",
+      eventType: 'login',
+      eventResult: 'incomplete',
+      userId: 'jwt',
     });
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
-    const res = await fetch("/api/decrypt-risk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/decrypt-risk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ encryptedRiskEventString }),
     });
     const response = await res.json();
     const riskResponse = JSON.parse(response.riskResponse);
     saveRisk(riskResponse);
 
-    localStorage.setItem("token", jwtInput);
+    localStorage.setItem('token', jwtInput);
     setLoading(false);
-    Router.push("/dashboard");
+    Router.push('/dashboard');
   };
 
   return (
     <div className="w-full">
       <div className="flex flex-col mb-4">
         <h1 className="w-full max-w-sm mx-auto text-2xl font-bold">
-          {isLogin ? "Log in" : "Register"}
+          {isLogin ? 'Log in' : 'Register'}
         </h1>
       </div>
       <form
@@ -251,9 +255,9 @@ const AuthForm = () => {
             {loading ? (
               <div className="animate-spin w-4 h-4 border-t-2 border-white rounded-full" />
             ) : isLogin ? (
-              "Log in"
+              'Log in'
             ) : (
-              "Register"
+              'Register'
             )}
           </button>
         </div>
@@ -268,7 +272,7 @@ const AuthForm = () => {
         >
           {isLogin
             ? "Don't have an account? Register"
-            : "Already have an account? Log in"}
+            : 'Already have an account? Log in'}
         </p>
       </div>
 
@@ -291,7 +295,7 @@ const AuthForm = () => {
           {loading ? (
             <div className="animate-spin w-4 h-4 border-t-2 border-white rounded-full" />
           ) : (
-            "Authenticate with JWT"
+            'Authenticate with JWT'
           )}
         </button>
       </div>

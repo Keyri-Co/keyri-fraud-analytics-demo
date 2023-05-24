@@ -11,6 +11,7 @@
   "dependencies": {
     "@justinwwolcott/ez-web-crypto": "^1.2.1",
     "bcryptjs": "^2.4.3",
+    "browser-fraud-analytics": "file:../browser-fraud-analytics",
     "dotenv": "^16.0.3",
     "eslint": "8.37.0",
     "eslint-config-next": "13.2.4",

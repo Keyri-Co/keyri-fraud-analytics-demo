@@ -7,6 +7,9 @@ dependencies:
   bcryptjs:
     specifier: ^2.4.3
     version: 2.4.3
+  browser-fraud-analytics:
+    specifier: file:../browser-fraud-analytics
+    version: file:../browser-fraud-analytics
   dotenv:
     specifier: ^16.0.3
     version: 16.0.3
@@ -159,6 +162,10 @@ packages:
 
   /@justinwwolcott/ez-web-crypto@1.2.1:
     resolution: {integrity: sha512-P+0eMYoQIsaaBgiFn4dmqsBmX2IjBGTOnckMkVmL2PTUt1ZGhAxShnZ88qlaV/jJDIKxwCVZja4u1/hg7QUTng==}
+    dev: false
+
+  /@justinwwolcott/ez-web-crypto@1.3.1:
+    resolution: {integrity: sha512-UvBVhduvvoxZE+zoQhzfkLYNowK8XF36wL3Q7EwQoE3IiEG5S9eD6P8dAtjjhboOxa0mlVGoL/7Ht0BWoVb+7g==}
     dev: false
 
   /@next/env@13.2.4:
@@ -3189,4 +3196,12 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+    dev: false
+
+  file:../browser-fraud-analytics:
+    resolution: {directory: ../browser-fraud-analytics, type: directory}
+    name: browser-fraud-analytics
+    version: 1.0.0
+    dependencies:
+      '@justinwwolcott/ez-web-crypto': 1.3.1
     dev: false
