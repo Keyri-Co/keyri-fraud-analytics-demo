@@ -19,6 +19,9 @@ dependencies:
   jsonwebtoken:
     specifier: ^9.0.0
     version: 9.0.0
+  keyri-bouncer:
+    specifier: ^1.0.3
+    version: 1.0.3
   keyri-fingerprint:
     specifier: ^1.0.31
     version: 1.0.31
@@ -1794,6 +1797,10 @@ packages:
     dependencies:
       jwa: 1.4.1
       safe-buffer: 5.2.1
+    dev: false
+
+  /keyri-bouncer@1.0.3:
+    resolution: {integrity: sha512-08XARXBgGBupl6f8bKW1y19skI2H+HRaCVJv/0Ah3cb6RDT2QvTOy1n9FYOOVkfTUWYKbszXOR8u5qxYd4oa5g==}
     dev: false
 
   /keyri-fingerprint@1.0.31:

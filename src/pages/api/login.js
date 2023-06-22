@@ -17,24 +17,30 @@ export default async function login(req, res) {
 
     const rpPrivateKey = process.env.RP_ENCRYPTION_PRIVATE_KEY;
     const encryptedLoginEvent = JSON.parse(encryptedLoginEventString);
+    console.log('encryptedLoginEvent', encryptedLoginEvent);
 
     let decryptedLoginEvent = await ezcrypto.HKDFDecrypt(
       rpPrivateKey,
-      encryptedLoginEvent.keyriEncryptionPublicKey,
+      encryptedLoginEvent.publicEncryptionKey,
       encryptedLoginEvent.salt,
       encryptedLoginEvent.iv,
-      encryptedLoginEvent.encryptedPayload
+      encryptedLoginEvent.ciphertext
     );
 
     decryptedLoginEvent = new TextDecoder().decode(decryptedLoginEvent);
     decryptedLoginEvent = JSON.parse(decryptedLoginEvent).fingerprintEvent;
     console.log(decryptedLoginEvent);
-    const riskDetermination = checkWarnOrDeny(JSON.parse(decryptedLoginEvent.riskParams));
+    const riskDetermination = decryptedLoginEvent.state;
     const signals = decryptedLoginEvent.signals;
-    const riskParams = decryptedLoginEvent.riskParams;
-    const location = JSON.stringify(decryptedLoginEvent.location);
-    const fingerprintId = decryptedLoginEvent.fingerprintId;
-    const riskResponse = JSON.stringify({ signals, riskParams, location, fingerprintId });
+    const riskParams = decryptedLoginEvent.signals;
+    const location = 'currently unavailable';
+    const fingerprintId = decryptedLoginEvent.deviceId;
+    const riskResponse = JSON.stringify({
+      signals,
+      riskParams,
+      location,
+      fingerprintId,
+    });
 
     if (riskDetermination === 'Deny') {
       statusCode = 403;
@@ -43,14 +49,21 @@ export default async function login(req, res) {
       statusCode = 300;
       response = { riskResponse };
     } else if (riskDetermination === 'Allow') {
-      const users = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
+      const users = await query(
+        'SELECT * FROM users_fraud_demo WHERE username = $1',
+        [username]
+      );
       const user = users[0];
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
         statusCode = 401;
         response = { riskResponse, error: 'Invalid username or password' };
       } else {
-        const token = sign({ id: user.id, username: user.username, publicKey: publicKey });
+        const token = sign({
+          id: user.id,
+          username: user.username,
+          publicKey: publicKey,
+        });
         statusCode = 200;
         response = { token, riskResponse };
       }

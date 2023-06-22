@@ -9,11 +9,8 @@ export default async function signup(req, res) {
     return res.status(405).end();
   }
 
-  const { username, password, publicKey, encryptedSignupEventString } = req.body;
-  console.log('username', username);
-  console.log('password', password);
-  console.log('publicKey', publicKey);
-  console.log('encryptedSignupEventString', encryptedSignupEventString);
+  const { username, password, publicKey, encryptedSignupEventString } =
+    req.body;
   let statusCode, response;
 
   try {
@@ -25,43 +22,60 @@ export default async function signup(req, res) {
 
     let decryptedSignupEvent = await ezcrypto.HKDFDecrypt(
       rpPrivateKey,
-      encryptedSignupEvent.keyriEncryptionPublicKey,
+      encryptedSignupEvent.publicEncryptionKey,
       encryptedSignupEvent.salt,
       encryptedSignupEvent.iv,
-      encryptedSignupEvent.encryptedPayload
+      encryptedSignupEvent.ciphertext
     );
 
     decryptedSignupEvent = new TextDecoder().decode(decryptedSignupEvent);
+    decryptedSignupEvent = JSON.parse(decryptedSignupEvent);
     console.log('decryptedSignupEvent', decryptedSignupEvent);
-    decryptedSignupEvent = JSON.parse(decryptedSignupEvent).fingerprintEvent;
-    console.log('decryptedSignupEvent', decryptedSignupEvent);
-    const riskDetermination = checkWarnOrDeny(JSON.parse(decryptedSignupEvent.riskParams));
+    const riskDetermination = decryptedSignupEvent.state;
     console.log('riskDetermination', riskDetermination);
     const signals = decryptedSignupEvent.signals;
-    const riskParams = decryptedSignupEvent.riskParams;
-    const location = JSON.stringify(decryptedSignupEvent.location);
-    const fingerprintId = decryptedSignupEvent.fingerprintId;
-    const riskResponse = JSON.stringify({ signals, riskParams, location, fingerprintId });
+    const riskParams = decryptedSignupEvent.signals;
+    const location = 'currently unavailable';
+    const fingerprintId = decryptedSignupEvent.deviceId;
+    const riskResponse = JSON.stringify({
+      signals,
+      riskParams,
+      location,
+      fingerprintId,
+    });
 
-    if (riskDetermination === 'Deny') {
+    if (riskDetermination === 'deny') {
       statusCode = 403;
       response = { riskResponse };
-    } else if (riskDetermination === 'Warn') {
+    } else if (riskDetermination === 'warn') {
       statusCode = 300;
       response = { riskResponse };
-    } else if (riskDetermination === 'Allow') {
-      const existingUsers = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
+    } else if (riskDetermination === 'allow') {
+      const existingUsers = await query(
+        'SELECT * FROM users_fraud_demo WHERE username = $1',
+        [username]
+      );
       if (existingUsers.length > 0) {
         statusCode = 409;
         response = { error: 'User already exists' };
       } else {
         const hashedPassword = await bcrypt.hash(password, 12);
-        await query('INSERT INTO users_fraud_demo (username, password) VALUES ($1, $2)', [username, hashedPassword]);
+        await query(
+          'INSERT INTO users_fraud_demo (username, password) VALUES ($1, $2)',
+          [username, hashedPassword]
+        );
 
-        const users = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
+        const users = await query(
+          'SELECT * FROM users_fraud_demo WHERE username = $1',
+          [username]
+        );
         const user = users[0];
 
-        const token = sign({ id: user.id, username: user.username, publicKey: publicKey });
+        const token = sign({
+          id: user.id,
+          username: user.username,
+          publicKey: publicKey,
+        });
         statusCode = 200;
         response = { token, riskResponse };
       }
