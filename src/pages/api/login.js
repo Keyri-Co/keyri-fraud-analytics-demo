@@ -28,7 +28,7 @@ export default async function login(req, res) {
     );
 
     decryptedLoginEvent = new TextDecoder().decode(decryptedLoginEvent);
-    decryptedLoginEvent = JSON.parse(decryptedLoginEvent).fingerprintEvent;
+    decryptedLoginEvent = JSON.parse(decryptedLoginEvent);
     console.log(decryptedLoginEvent);
     const riskDetermination = decryptedLoginEvent.state;
     const signals = decryptedLoginEvent.signals;
@@ -42,13 +42,13 @@ export default async function login(req, res) {
       fingerprintId,
     });
 
-    if (riskDetermination === 'Deny') {
+    if (riskDetermination === 'deny') {
       statusCode = 403;
       response = { riskResponse };
-    } else if (riskDetermination === 'Warn') {
+    } else if (riskDetermination === 'warn') {
       statusCode = 300;
       response = { riskResponse };
-    } else if (riskDetermination === 'Allow') {
+    } else if (riskDetermination === 'allow') {
       const users = await query(
         'SELECT * FROM users_fraud_demo WHERE username = $1',
         [username]
