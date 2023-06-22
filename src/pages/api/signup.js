@@ -31,17 +31,18 @@ export default async function signup(req, res) {
     decryptedSignupEvent = new TextDecoder().decode(decryptedSignupEvent);
     decryptedSignupEvent = JSON.parse(decryptedSignupEvent);
     console.log('decryptedSignupEvent', decryptedSignupEvent);
-    const riskDetermination = decryptedSignupEvent.state;
+    const riskDetermination = decryptedSignupEvent.riskSummary;
     console.log('riskDetermination', riskDetermination);
     const signals = decryptedSignupEvent.signals;
     const riskParams = decryptedSignupEvent.signals;
-    const location = 'currently unavailable';
+    const location = decryptedSignupEvent.ipLocationData;
     const fingerprintId = decryptedSignupEvent.deviceId;
     const riskResponse = JSON.stringify({
       signals,
       riskParams,
       location,
       fingerprintId,
+      riskDetermination,
     });
 
     if (riskDetermination === 'deny') {

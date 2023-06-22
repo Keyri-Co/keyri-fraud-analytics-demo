@@ -30,16 +30,17 @@ export default async function login(req, res) {
     decryptedLoginEvent = new TextDecoder().decode(decryptedLoginEvent);
     decryptedLoginEvent = JSON.parse(decryptedLoginEvent);
     console.log(decryptedLoginEvent);
-    const riskDetermination = decryptedLoginEvent.state;
+    const riskDetermination = decryptedLoginEvent.riskSummary;
     const signals = decryptedLoginEvent.signals;
     const riskParams = decryptedLoginEvent.signals;
-    const location = 'currently unavailable';
+    const location = decryptedLoginEvent.ipLocationData;
     const fingerprintId = decryptedLoginEvent.deviceId;
     const riskResponse = JSON.stringify({
       signals,
       riskParams,
       location,
       fingerprintId,
+      riskDetermination,
     });
 
     if (riskDetermination === 'deny') {
