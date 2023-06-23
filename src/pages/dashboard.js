@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import Router from 'next/router';
 import Head from 'next/head';
-import { Device } from 'keyri-fingerprint';
 import { UserContext } from '@/pages/_app';
 import { lockToken, clearIdb } from '@/lib/session-lock';
 import SignalBoxes from '@/components/SignalBoxes';
@@ -14,12 +13,13 @@ export default function Dashboard() {
   const [riskParams, setRiskParams] = useState('');
   const [geoLocation, setGeoLocation] = useState({});
   const [deviceId, setDeviceId] = useState('');
+  const [riskDetermination, setRiskDetermination] = useState('');
 
   useEffect(() => {
     function setRiskStates() {
       const storedRiskParams = localStorage.getItem('riskParams');
       if (storedRiskParams) {
-        setRiskParams(JSON.parse(storedRiskParams));
+        setRiskParams(storedRiskParams);
       }
       const storedGeoLocation = localStorage.getItem('geoLocation');
       if (storedGeoLocation) {
@@ -32,6 +32,10 @@ export default function Dashboard() {
       const deviceId = localStorage.getItem('deviceId');
       if (deviceId) {
         setDeviceId(deviceId);
+      }
+      const riskDetermination = localStorage.getItem('riskDetermination');
+      if (riskDetermination) {
+        setRiskDetermination(riskDetermination);
       }
     }
 
@@ -118,7 +122,13 @@ export default function Dashboard() {
         <div className='container mx-auto max-w-screen-xl mt-10'>
           <p className='text-m font-semibold mb-2 border-b-2 border-gray-600'>Fraud Risk Details</p>
 
-          <SignalBoxes riskParams={riskParams} geoLocation={geoLocation} signals={signals} deviceId={deviceId} />
+          <SignalBoxes
+            riskDeterminationIn={riskDetermination}
+            riskParams={riskParams}
+            geoLocation={geoLocation}
+            signals={signals}
+            deviceId={deviceId}
+          />
         </div>
       </div>
     </>

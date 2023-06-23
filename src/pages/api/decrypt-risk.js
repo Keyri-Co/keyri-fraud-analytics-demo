@@ -1,5 +1,4 @@
 import EZCrypto from '@justinwwolcott/ez-web-crypto';
-import { checkWarnOrDeny } from '@/lib/riskAnalysis';
 
 export default async function jwtLogin(req, res) {
   if (req.method !== 'POST') {
@@ -24,7 +23,7 @@ export default async function jwtLogin(req, res) {
 
     decryptedRiskEvent = new TextDecoder().decode(decryptedRiskEvent);
     decryptedRiskEvent = JSON.parse(decryptedRiskEvent).fingerprintEvent;
-    const riskDetermination = checkWarnOrDeny(JSON.parse(decryptedRiskEvent.riskParams));
+    const riskDetermination = decryptedRiskEvent.riskSummary;
     const signals = decryptedRiskEvent.signals;
     const riskParams = decryptedRiskEvent.riskParams;
     const location = JSON.stringify(decryptedRiskEvent.location);

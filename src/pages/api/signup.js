@@ -2,15 +2,13 @@ import bcrypt from 'bcryptjs';
 import EZCrypto from '@justinwwolcott/ez-web-crypto';
 import { query } from '../../../database';
 import { sign } from '../../lib/jwt';
-import { checkWarnOrDeny } from '@/lib/riskAnalysis';
 
 export default async function signup(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
 
-  const { username, password, publicKey, encryptedSignupEventString } =
-    req.body;
+  const { username, password, publicKey, encryptedSignupEventString } = req.body;
   let statusCode, response;
 
   try {
@@ -18,7 +16,6 @@ export default async function signup(req, res) {
 
     const rpPrivateKey = process.env.RP_ENCRYPTION_PRIVATE_KEY;
     const encryptedSignupEvent = JSON.parse(encryptedSignupEventString);
-    console.log('encryptedSignupEvent', encryptedSignupEvent);
 
     let decryptedSignupEvent = await ezcrypto.HKDFDecrypt(
       rpPrivateKey,
@@ -30,9 +27,7 @@ export default async function signup(req, res) {
 
     decryptedSignupEvent = new TextDecoder().decode(decryptedSignupEvent);
     decryptedSignupEvent = JSON.parse(decryptedSignupEvent);
-    console.log('decryptedSignupEvent', decryptedSignupEvent);
     const riskDetermination = decryptedSignupEvent.riskSummary;
-    console.log('riskDetermination', riskDetermination);
     const signals = decryptedSignupEvent.signals;
     const riskParams = decryptedSignupEvent.signals;
     const location = decryptedSignupEvent.ipLocationData;
@@ -52,24 +47,15 @@ export default async function signup(req, res) {
       statusCode = 300;
       response = { riskResponse };
     } else if (riskDetermination === 'allow') {
-      const existingUsers = await query(
-        'SELECT * FROM users_fraud_demo WHERE username = $1',
-        [username]
-      );
+      const existingUsers = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
       if (existingUsers.length > 0) {
         statusCode = 409;
         response = { error: 'User already exists' };
       } else {
         const hashedPassword = await bcrypt.hash(password, 12);
-        await query(
-          'INSERT INTO users_fraud_demo (username, password) VALUES ($1, $2)',
-          [username, hashedPassword]
-        );
+        await query('INSERT INTO users_fraud_demo (username, password) VALUES ($1, $2)', [username, hashedPassword]);
 
-        const users = await query(
-          'SELECT * FROM users_fraud_demo WHERE username = $1',
-          [username]
-        );
+        const users = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
         const user = users[0];
 
         const token = sign({

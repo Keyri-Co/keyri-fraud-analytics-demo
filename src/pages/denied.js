@@ -11,11 +11,12 @@ export default function Warning() {
   const [riskParams, setRiskParams] = useState('');
   const [geoLocation, setGeoLocation] = useState({});
   const [deviceId, setDeviceId] = useState('');
+  const [riskDetermination, setRiskDetermination] = useState('');
 
   useEffect(() => {
     const storedRiskParams = localStorage.getItem('riskParams');
     if (storedRiskParams) {
-      setRiskParams(JSON.parse(storedRiskParams));
+      setRiskParams(storedRiskParams);
     }
     const storedGeoLocation = localStorage.getItem('geoLocation');
     if (storedGeoLocation) {
@@ -28,6 +29,10 @@ export default function Warning() {
     const deviceId = localStorage.getItem('deviceId');
     if (deviceId) {
       setDeviceId(deviceId);
+    }
+    const riskDetermination = localStorage.getItem('riskDetermination');
+    if (riskDetermination) {
+      setRiskDetermination(riskDetermination);
     }
   }, [setIsLoggedIn]);
 
@@ -75,7 +80,13 @@ export default function Warning() {
         <div className='container mx-auto max-w-screen-xl mt-10'>
           <p className='text-m font-semibold mb-2 border-b-2 border-gray-600'>Fraud Risk Details</p>
 
-          <SignalBoxes riskParams={riskParams} geoLocation={geoLocation} signals={signals} deviceId={deviceId} />
+          <SignalBoxes
+            riskDeterminationIn={riskDetermination}
+            riskParams={riskParams}
+            geoLocation={geoLocation}
+            signals={signals}
+            deviceId={deviceId}
+          />
         </div>
       </div>
     </>

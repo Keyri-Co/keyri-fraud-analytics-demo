@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import EZCrypto from '@justinwwolcott/ez-web-crypto';
 import { query } from '../../../database';
 import { sign } from '../../lib/jwt';
-import { checkWarnOrDeny } from '@/lib/riskAnalysis';
 
 export default async function login(req, res) {
   if (req.method !== 'POST') {
@@ -17,7 +16,6 @@ export default async function login(req, res) {
 
     const rpPrivateKey = process.env.RP_ENCRYPTION_PRIVATE_KEY;
     const encryptedLoginEvent = JSON.parse(encryptedLoginEventString);
-    console.log('encryptedLoginEvent', encryptedLoginEvent);
 
     let decryptedLoginEvent = await ezcrypto.HKDFDecrypt(
       rpPrivateKey,
@@ -29,7 +27,6 @@ export default async function login(req, res) {
 
     decryptedLoginEvent = new TextDecoder().decode(decryptedLoginEvent);
     decryptedLoginEvent = JSON.parse(decryptedLoginEvent);
-    console.log(decryptedLoginEvent);
     const riskDetermination = decryptedLoginEvent.riskSummary;
     const signals = decryptedLoginEvent.signals;
     const riskParams = decryptedLoginEvent.signals;
@@ -50,10 +47,7 @@ export default async function login(req, res) {
       statusCode = 300;
       response = { riskResponse };
     } else if (riskDetermination === 'allow') {
-      const users = await query(
-        'SELECT * FROM users_fraud_demo WHERE username = $1',
-        [username]
-      );
+      const users = await query('SELECT * FROM users_fraud_demo WHERE username = $1', [username]);
       const user = users[0];
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
