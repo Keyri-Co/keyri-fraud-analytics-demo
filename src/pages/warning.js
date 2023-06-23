@@ -19,7 +19,7 @@ export default function Warning() {
     }
     const storedRiskParams = localStorage.getItem('riskParams');
     if (storedRiskParams) {
-      setRiskParams(JSON.parse(storedRiskParams));
+      setRiskParams(storedRiskParams);
     }
     const storedGeoLocation = localStorage.getItem('geoLocation');
     if (storedGeoLocation) {
