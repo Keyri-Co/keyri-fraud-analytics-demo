@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import Router from 'next/router';
 import { UserContext } from '@/pages/_app';
-import { Bouncer } from 'keyri-bouncer';
+import { Thorium } from 'keyri-bouncer';
 import { generateKeyPair, clearIdb } from '@/lib/session-lock';
 
 const AuthForm = () => {
@@ -47,9 +47,9 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Bouncer();
+    const bouncer = new Thorium();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedSignupEvent = await bouncer.interrogate('signup', username, rpEncryptionPubKey);
+    const encryptedSignupEvent = await bouncer.xray('signup', username, rpEncryptionPubKey);
     const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
@@ -102,9 +102,10 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Bouncer();
+    const bouncer = new Thorium();
+
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedLoginEvent = await bouncer.interrogate('login', username, rpEncryptionPubKey);
+    const encryptedLoginEvent = await bouncer.xray('login', username, rpEncryptionPubKey);
     const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
@@ -159,9 +160,9 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Bouncer();
+    const bouncer = new Thorium();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedRiskEvent = await bouncer.interrogate('login', 'jwt', rpEncryptionPubKey);
+    const encryptedRiskEvent = await bouncer.xray('login', 'jwt', rpEncryptionPubKey);
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
     const res = await fetch('/api/decrypt-risk', {
