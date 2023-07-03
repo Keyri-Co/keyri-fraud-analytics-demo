@@ -27,6 +27,7 @@ export default async function signup(req, res) {
 
     decryptedSignupEvent = new TextDecoder().decode(decryptedSignupEvent);
     decryptedSignupEvent = JSON.parse(decryptedSignupEvent);
+    console.log(decryptedSignupEvent);
     const riskDetermination = decryptedSignupEvent.riskSummary;
     const signals = decryptedSignupEvent.signals;
     const riskParams = decryptedSignupEvent.signals;

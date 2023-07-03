@@ -27,6 +27,7 @@ export default async function login(req, res) {
 
     decryptedLoginEvent = new TextDecoder().decode(decryptedLoginEvent);
     decryptedLoginEvent = JSON.parse(decryptedLoginEvent);
+    console.log(decryptedLoginEvent);
     const riskDetermination = decryptedLoginEvent.riskSummary;
     const signals = decryptedLoginEvent.signals;
     const riskParams = decryptedLoginEvent.signals;

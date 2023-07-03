@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import Router from 'next/router';
 import { UserContext } from '@/pages/_app';
-import { Thorium } from 'keyri-bouncer';
+import { XRAY } from '@keyri/xray';
 import { generateKeyPair, clearIdb } from '@/lib/session-lock';
 
 const AuthForm = () => {
@@ -47,9 +47,15 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Thorium();
+    const xray = new XRAY();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedSignupEvent = await bouncer.xray('signup', username, rpEncryptionPubKey);
+    const encryptedSignupEvent = await xray.scan(
+      'signup',
+      username,
+      rpEncryptionPubKey,
+      10000,
+      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
+    );
     const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
 
     const publicKey = await generateKeyPair();
@@ -102,10 +108,16 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Thorium();
+    const xray = new XRAY();
 
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedLoginEvent = await bouncer.xray('login', username, rpEncryptionPubKey);
+    const encryptedLoginEvent = await xray.scan(
+      'login',
+      username,
+      rpEncryptionPubKey,
+      10000,
+      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
+    );
     const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
 
     const publicKey = await generateKeyPair();
@@ -160,9 +172,15 @@ const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const bouncer = new Thorium();
+    const xray = new XRAY();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedRiskEvent = await bouncer.xray('login', 'jwt', rpEncryptionPubKey);
+    const encryptedRiskEvent = await xray.scan(
+      'login',
+      'jwt',
+      rpEncryptionPubKey,
+      10000,
+      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
+    );
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
     const res = await fetch('/api/decrypt-risk', {
