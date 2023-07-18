@@ -120,14 +120,23 @@ const AuthForm = () => {
     const xray = new XRAY();
 
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedLoginEvent = await xray.scan(
-      'login',
-      username,
-      rpEncryptionPubKey,
-      10000,
-      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
-    );
-    const encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
+    let encryptedLoginEventString;
+    try {
+      const encryptedLoginEvent = await xray.scan(
+        'login',
+        username,
+        rpEncryptionPubKey,
+        10000,
+        'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
+      );
+      encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
+    } catch (error) {
+      console.error('Error scanning for login event:', error);
+      Sentry.captureException(error);
+      setAuthError('Error scanning for login event');
+      setLoading(false);
+      return;
+    }
 
     const publicKey = await generateKeyPair();
     const res = await fetch('/api/login', {
