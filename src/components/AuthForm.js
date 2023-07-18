@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import Router from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { UserContext } from '@/pages/_app';
 import { XRAY } from '@keyri/xray';
 import { generateKeyPair, clearIdb } from '@/lib/session-lock';
@@ -49,14 +50,23 @@ const AuthForm = () => {
 
     const xray = new XRAY();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedSignupEvent = await xray.scan(
-      'signup',
-      username,
-      rpEncryptionPubKey,
-      10000,
-      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
-    );
-    const encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
+    let encryptedSignupEventString;
+    try {
+      const encryptedSignupEvent = await xray.scan(
+        'signup',
+        username,
+        rpEncryptionPubKey,
+        10000,
+        'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
+      );
+      encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
+    } catch (error) {
+      console.error('Error scanning for signup event:', error);
+      Sentry.captureException(error);
+      setAuthError('Error scanning for signup event');
+      setLoading(false);
+      return;
+    }
 
     const publicKey = await generateKeyPair();
     const res = await fetch('/api/signup', {
@@ -103,7 +113,6 @@ const AuthForm = () => {
       Router.push(destination);
     }
   }
-
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);

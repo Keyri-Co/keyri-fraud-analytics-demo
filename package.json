@@ -11,6 +11,7 @@
   "dependencies": {
     "@justinwwolcott/ez-web-crypto": "^1.2.1",
     "@keyri/xray": "^1.2.2",
+    "@sentry/nextjs": "^7.59.2",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.3",
     "eslint": "8.37.0",
