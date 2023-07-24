@@ -52,13 +52,7 @@ const AuthForm = () => {
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
     let encryptedSignupEventString;
     try {
-      const encryptedSignupEvent = await xray.scan(
-        'signup',
-        username,
-        rpEncryptionPubKey,
-        10000,
-        'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
-      );
+      const encryptedSignupEvent = await xray.scan('signup', username, rpEncryptionPubKey, 10000);
       encryptedSignupEventString = JSON.stringify(encryptedSignupEvent);
     } catch (error) {
       console.error('Error scanning for signup event:', error);
@@ -120,15 +114,10 @@ const AuthForm = () => {
     const xray = new XRAY();
 
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
+    console.log('rpEncryptionPubKey', rpEncryptionPubKey);
     let encryptedLoginEventString;
     try {
-      const encryptedLoginEvent = await xray.scan(
-        'login',
-        username,
-        rpEncryptionPubKey,
-        10000,
-        'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
-      );
+      const encryptedLoginEvent = await xray.scan('login', username, rpEncryptionPubKey, 10000);
       encryptedLoginEventString = JSON.stringify(encryptedLoginEvent);
     } catch (error) {
       console.error('Error scanning for login event:', error);
@@ -192,13 +181,7 @@ const AuthForm = () => {
 
     const xray = new XRAY();
     const rpEncryptionPubKey = process.env.NEXT_PUBLIC_RP_ENCRYPTION_PUBLIC_KEY;
-    const encryptedRiskEvent = await xray.scan(
-      'login',
-      'jwt',
-      rpEncryptionPubKey,
-      10000,
-      'https://r50xv68e3m.execute-api.eu-central-1.amazonaws.com/stage/v1/client'
-    );
+    const encryptedRiskEvent = await xray.scan('login', 'jwt', rpEncryptionPubKey, 10000);
     const encryptedRiskEventString = JSON.stringify(encryptedRiskEvent);
 
     const res = await fetch('/api/decrypt-risk', {
